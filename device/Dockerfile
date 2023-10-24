@@ -2,3 +2,10 @@
 
 #Docker Python Image
 FROM python:3.9.18-slim-bullseye
+
+
+# Add python files
+ADD ./main.py .
+ADD ./requirements.txt .
+
+
