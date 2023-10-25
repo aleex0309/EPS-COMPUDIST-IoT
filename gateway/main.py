@@ -16,4 +16,4 @@ if __name__ == "__main__":
     # value_serializer=lambda x: dumps(x).encode('utf-8')) #Connect to the kafka broker
     # _deserializer=lambda x: loads(x.decode('utf-8'))
 
-    subscribe.callback(test_print, ["+"], hostname= str(getenv("MQTT_HOSTNAME")) ) #Subscribe to the mqtt broker
+    subscribe.callback(test_print, ["+"], hostname= str(getenv("MQTT_HOSTNAME"))) #Subscribe to the mqtt broker
