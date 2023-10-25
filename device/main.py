@@ -1,17 +1,13 @@
-from enum import Enum
-from os import error, getenv
-
-
-class DeviceTypes(Enum):
-    LIGHT = "LIGHT"
-    PRESENCE_SENSOR = "PRESENCE_SENSOR"
-    TEMPERATURE_SENSOR = "TEMPERATURE_SENSOR"
-    HEAT_PUMP = "HEAT_PUMP"
-
+from os import getenv
+from device import devices
 
 if __name__ == "__main__":
     device_type = getenv("DEVICE_TYPE")
 
-    if device_type not in [e.value for e in DeviceTypes]:
-        print("Device type not registered")
+    if device_type not in devices:
+        print(f"Device type {device_type} not registered")
         exit(-1)
+
+    device = devices[device_type]
+
+    device.start()

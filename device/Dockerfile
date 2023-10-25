@@ -5,7 +5,7 @@ FROM python:3.9.18-slim-bullseye
 
 
 # Add python files
-ADD ./main.py .
+ADD ./*.py .
 ADD ./requirements.txt .
 
 RUN pip install -r ./requirements.txt
