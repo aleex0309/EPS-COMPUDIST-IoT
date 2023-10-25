@@ -1,7 +1,19 @@
 version: "3.9"
 services:
   mosquitto:
-    image: eclipse-mosquitto:1.6.12
-    ports:
-      - "1883:1883"
-      - "9001:9001"
+    image: eclipse-mosquitto:latest
+
+  device-1:
+    build: device
+    environment:
+      - BROKER_HOSTNAME=mosquitto
+      - DEVICE_TYPE=TEMPERATURE_SENSOR
+    depends_on:
+      - mosquitto
+
+  gateway:
+    build: gateway
+    environment:
+      - MQTT_HOSTNAME=mosquitto
+    depends_on:
+      - mosquitto
