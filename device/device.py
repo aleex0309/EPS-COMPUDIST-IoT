@@ -1,10 +1,8 @@
-from os import getenv
 from random import randrange
 from time import sleep
 
 # MQTT Imports
-import paho.mqtt.subscribe as subscribe
-import paho.mqtt.publish as publish
+from paho.mqtt.client import Client
 
 
 class Device:
@@ -12,6 +10,8 @@ class Device:
     isActuator: bool
     valid_range: tuple[int, int]
     reading: int
+
+    client: Client
 
     def __init__(
         self, name: str, isActuator: bool, valid_range: tuple[int, int]
@@ -21,10 +21,25 @@ class Device:
         self.valid_range = valid_range
         self.reading = self._generate_value()
 
+        # Initialize client
+        self.client = Client()
+
     # Starts loop
     def start(self):
+        if not self.client.is_connected():
+            print("Can't start, device not connected to MQTT server")
+            exit(-1)
+
         while True:
-            self._handle_actuator() if self.isActuator else self._handle_sensor()
+            if not self.isActuator:
+                self._handle_sensor()
+
+    def connect(self, hostname, topic):
+        self.client.connect(hostname)
+
+        if self.isActuator:
+            self.client.subscribe(topic)
+            self.client.on_message = self._on_message
 
     # Generates a random value between the specified range
     def _generate_value(self):
@@ -36,14 +51,6 @@ class Device:
         self.reading = message.payload
         pass
 
-    # Waits for a message to be recived then saves the value and sends the confirmation
-    def _handle_actuator(self):
-        subscribe.callback(
-            self._on_message, [self.name], hostname=str(getenv("BROKER_HOSTNAME"))
-        )
-        self._publish_wrapper(self.reading)
-        pass
-
     # Sends the new value and sleeps 1sec
     def _handle_sensor(self):
         self.reading = self._generate_value()
@@ -51,12 +58,7 @@ class Device:
         sleep(1)
 
     def _publish_wrapper(self, message):
-        publish.single(
-            self.name,
-            f"{message}",
-            hostname=str(getenv("BROKER_HOSTNAME")),
-        )
-        print(f"SENDED: {message}")
+        self.client.publish(self.name, f"{message}")
 
 
 # Predefined devices
