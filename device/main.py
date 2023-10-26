@@ -3,6 +3,7 @@ from device import devices
 
 
 if __name__ == "__main__":
+    print("Device Starting Please Wait...")
     device_type = getenv("DEVICE_TYPE")
 
     if device_type not in devices:
@@ -11,4 +12,5 @@ if __name__ == "__main__":
 
     device = devices[device_type]
     device.connect(getenv("BROKER_HOSTNAME"), device.name)
+    print("caca")
     device.start()

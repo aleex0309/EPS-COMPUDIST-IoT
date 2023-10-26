@@ -10,6 +10,7 @@ class Device:
     isActuator: bool
     valid_range: tuple[int, int]
     reading: int
+    topic: str
 
     client: Client
 
@@ -26,20 +27,21 @@ class Device:
 
     # Starts loop
     def start(self):
-        if not self.client.is_connected():
-            print("Can't start, device not connected to MQTT server")
-            exit(-1)
-
+        print(f"Starting device (TYPE={self.name})...")
         while True:
             if not self.isActuator:
                 self._handle_sensor()
+            else:
+                self.client.subscribe(self.topic)
 
     def connect(self, hostname, topic):
+        self.topic = topic
+
+        print(f"Trying to connect (HOSTNAME={hostname})")
         self.client.connect(hostname)
 
-        if self.isActuator:
-            self.client.subscribe(topic)
-            self.client.on_message = self._on_message
+        self.client.on_publish = self._on_publish
+        self.client.on_message = self._on_message
 
     # Generates a random value between the specified range
     def _generate_value(self):
@@ -49,7 +51,9 @@ class Device:
     def _on_message(self, client, userdata, message):
         print(f"RECIVED: {message.payload}")
         self.reading = message.payload
-        pass
+
+    def _on_publish(self, client, userdata, mid):
+        print(f"SENDED: {self.reading}")
 
     # Sends the new value and sleeps 1sec
     def _handle_sensor(self):
