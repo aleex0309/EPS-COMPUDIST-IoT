@@ -1,5 +1,5 @@
 from os import getenv
-from device import devices
+from device import devices  # type: ignore
 
 
 if __name__ == "__main__":
@@ -12,5 +12,4 @@ if __name__ == "__main__":
 
     device = devices[device_type]
     device.connect(getenv("BROKER_HOSTNAME"), device.name)
-    print("caca")
     device.start()
