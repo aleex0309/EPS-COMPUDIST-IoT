@@ -6,6 +6,8 @@ from kafka import KafkaProducer
 
 DEVICE_TYPE = {"LIGHT", "PRESENCE_SENSOR", "TEMPERATURE_SENSOR", "HEAT_PUMP"}
 
+producer: KafkaProducer
+
 
 def serializer(value):
     return dumps(value).encode("utf-8")

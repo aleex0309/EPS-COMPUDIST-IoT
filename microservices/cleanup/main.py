@@ -7,8 +7,8 @@ from kafka import KafkaConsumer
 
 
 # Turns the output into a dict
-def deserializer(value: bytes):
-    return loads(value.decode())
+def deserializer(value: bytes) -> dict:
+    return loads(value.decode("utf-8"))
 
 
 if __name__ == "__main__":
@@ -19,20 +19,21 @@ if __name__ == "__main__":
         try:
             print(f"Trying to connect to broker {hostname}...", flush=True)
             consumer = KafkaConsumer(
-                "CLEAN",
-                bootstrap_servers=[str(getenv("KAFKA_BROKER_HOSTNAME"))],
+                "clean",
+                bootstrap_servers=[str(hostname)],
                 value_deserializer=deserializer,
             )
 
             if consumer.bootstrap_connected():
                 break
 
-        except Exception:
-            pass
+        except Exception as e:
+            print(e, flush=True)
 
         sleep(1)
+
     if consumer.bootstrap_connected():
-        print("Connection Established!")
+        print("Connection Established!", flush=True)
 
     for msg in consumer:
-        print(msg.value)
+        print(f"Recived Value {msg.value}", flush=True)
