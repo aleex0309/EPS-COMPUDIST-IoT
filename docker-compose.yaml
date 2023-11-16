@@ -16,8 +16,10 @@ services:
     build: gateway
     environment:
       - MQTT_HOSTNAME=mosquitto
+      - KAFKA_BROKER_HOSTNAME=kafka:9092
     depends_on:
       - mosquitto
+      - kafka
 
   zookeeper:
     image: docker.io/bitnami/zookeeper:3.8

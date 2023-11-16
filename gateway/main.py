@@ -1,9 +1,14 @@
-from operator import truediv
+from json import dumps
 from os import getenv
+from time import sleep
 import paho.mqtt.client as client
 from kafka import KafkaProducer
 
 DEVICE_TYPE = {"LIGHT", "PRESENCE_SENSOR", "TEMPERATURE_SENSOR", "HEAT_PUMP"}
+
+
+def serializer(value):
+    return dumps(value).encode("utf-8")
 
 
 def flushed_print(string):
@@ -12,7 +17,11 @@ def flushed_print(string):
 
 def on_message(client, userdata, message):
     flushed_print(f"{message.topic} {message.payload}")
-    kafka_producer.send(message.topic, message.payload)
+
+    message.payload = str(message.payload)
+
+    producer.send("save", message.payload)
+    producer.send("clean", message.payload)
 
 
 def on_connect(client, userdata, flags, rc):
@@ -26,17 +35,32 @@ def on_disconnect(client, userdata, rc):
 if __name__ == "__main__":
     flushed_print("Starting gateway")
 
-    host = str(getenv("MQTT_HOSTNAME"))
-    flushed_print(f"Connected to host: {host}")
+    mtqq_hostname = str(getenv("MQTT_HOSTNAME"))
+    kafka_hostname = str(getenv("KAFKA_BROKER_HOSTNAME"))
+    flushed_print(f"Connected to host: {mtqq_hostname}")
 
     mqtt_client = client.Client()
-    kafka_producer = KafkaProducer(bootstrap_servers=['kafka:9092'])
+
+    while True:
+        try:
+            print(f"Trying to connect to broker {kafka_hostname}...", flush=True)
+            producer = KafkaProducer(
+                bootstrap_servers=[kafka_hostname],
+                value_serializer=serializer,
+            )
+
+            if producer.bootstrap_connected():
+                break
+
+        except Exception:
+            pass
+        sleep(1)
 
     mqtt_client.on_connect = on_connect
     mqtt_client.on_disconnect = on_disconnect
     mqtt_client.on_message = on_message
 
-    mqtt_client.connect(host=host)
+    mqtt_client.connect(host=mtqq_hostname)
     mqtt_client.subscribe("TEMPERATURE_SENSOR")
 
     mqtt_client.loop_forever()
