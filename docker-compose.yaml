@@ -53,6 +53,7 @@ services:
 
       echo -e 'Creating kafka topics'
       kafka-topics.sh --create --topic clean -partitions 3 --bootstrap-server kafka:9092
+      kafka-topics.sh --create --topic save -partitions 3 --bootstrap-server kafka:9092
 
       echo -e 'Successfully created the following topics:'
       kafka-topics.sh --list --bootstrap-server kafka:9092
