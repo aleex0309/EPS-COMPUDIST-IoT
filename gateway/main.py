@@ -1,6 +1,7 @@
 from json import dumps
 from os import getenv
 from time import sleep
+from uu import decode
 import paho.mqtt.client as client
 from kafka import KafkaProducer
 
@@ -18,12 +19,18 @@ def flushed_print(string):
 
 
 def on_message(client, userdata, message):
-    flushed_print(f"{message.topic} {message.payload}")
+    message.payload = message.payload.decode("utf-8")
 
-    message.payload = str(message.payload)
+    flushed_print(f"{message.topic} {message.payload} ")
 
-    producer.send("save", message.payload)
-    producer.send("clean", message.payload)
+    data = {
+        "gateway": "todo",
+        "device_name": message.topic,
+        "value": message.payload,
+    }
+
+    producer.send("save", data)
+    producer.send("clean", data)
 
 
 def on_connect(client, userdata, flags, rc):
