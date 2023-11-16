@@ -10,7 +10,7 @@ services:
       - DEVICE_TYPE=TEMPERATURE_SENSOR
       - PYTHONUNBUFFERED=1
     depends_on:
-      - mosquitto
+      - gateway
 
   gateway:
     build: gateway

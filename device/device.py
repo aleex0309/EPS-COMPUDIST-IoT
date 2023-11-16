@@ -35,6 +35,7 @@ class Device:
                 self.client.subscribe(self.topic)
 
     def connect(self, hostname, topic):
+        print("Topic: " + topic)
         self.topic = topic
 
         print(f"Trying to connect (HOSTNAME={hostname})")

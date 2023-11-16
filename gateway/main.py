@@ -1,19 +1,39 @@
-from enum import Enum
-from os import error, getenv
-import paho.mqtt.subscribe as subscribe
-#from kafka import KafkaProducer, KafkaConsumer
+from operator import truediv
+from os import getenv
+import paho.mqtt.client as client
 
-DEVICE_TYPE={"LIGHT, PRESENCE_SENSOR, TEMPERATURE_SENSOR, HEAT_PUMP"}
+DEVICE_TYPE = {"LIGHT", "PRESENCE_SENSOR", "TEMPERATURE_SENSOR", "HEAT_PUMP"}
 
-def test_print(client, userdata, message):
-    print("%s %s" % (message.topic, message.payload))
-    #my_producer.send(message.topic, value=message.payload) #Send the information to the kafka broker
+
+def flushed_print(string):
+    print(string, flush=True)
+
+
+def on_message(client, userdata, message):
+    flushed_print(f"{message.topic} {message.payload}")
+
+
+def on_connect(client, userdata, flags, rc):
+    flushed_print("Connected Succesfully")
+
+
+def on_disconnect(client, userdata, rc):
+    flushed_print("Disconnected")
+
 
 if __name__ == "__main__":
-    print("Starting gateway")
+    flushed_print("Starting gateway")
 
-    # my_producer = KafkaProducer(bootstrap_servers= getenv("HOSTNAME"), 
-    # value_serializer=lambda x: dumps(x).encode('utf-8')) #Connect to the kafka broker
-    # _deserializer=lambda x: loads(x.decode('utf-8'))
+    host = str(getenv("MQTT_HOSTNAME"))
+    flushed_print(f"Connected to host: {host}")
 
-    subscribe.callback(test_print, ["+"], hostname= str(getenv("MQTT_HOSTNAME"))) #Subscribe to the mqtt broker
+    mqtt_client = client.Client()
+
+    mqtt_client.on_connect = on_connect
+    mqtt_client.on_disconnect = on_disconnect
+    mqtt_client.on_message = on_message
+
+    mqtt_client.connect(host=host)
+    mqtt_client.subscribe("TEMPERATURE_SENSOR")
+
+    mqtt_client.loop_forever()
