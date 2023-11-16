@@ -34,15 +34,34 @@ services:
       - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
       - ALLOW_PLAINTEXT_LISTENER=yes
       - ALLOW_ANONYMOUS_LOGIN=yes
-      # - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://127.0.0.1:9092
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
 
     depends_on:
       - zookeeper
 
+  init-kafka:
+    image: docker.io/bitnami/kafka:3.3
+    depends_on:
+      - kafka
+    environment:
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+    entrypoint: ["/bin/sh", "-c"]
+    command: |
+      "
+      # blocks until kafka is reachable
+      kafka-topics.sh --bootstrap-server kafka:9092 --list
+
+      echo -e 'Creating kafka topics'
+      kafka-topics.sh --create --topic clean -partitions 3 --bootstrap-server kafka:9092
+
+      echo -e 'Successfully created the following topics:'
+      kafka-topics.sh --list --bootstrap-server kafka:9092
+      "
+
   cleanup:
     build: microservices/cleanup
     environment:
-      - KAFKA_BROKER_HOSTNAME=kafka
+      - KAFKA_BROKER_HOSTNAME=kafka:9092
 
     depends_on:
       - kafka
