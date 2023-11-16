@@ -28,11 +28,12 @@ class Device:
     # Starts loop
     def start(self):
         print(f"Starting device (TYPE={self.name})...")
+        if self.isActuator:
+            self.client.subscribe(self.topic)
+            self.client.loop_forever()
+
         while True:
-            if not self.isActuator:
-                self._handle_sensor()
-            else:
-                self.client.subscribe(self.topic)
+            self._handle_sensor()
 
     def connect(self, hostname, topic):
         print("Topic: " + topic)
@@ -60,6 +61,7 @@ class Device:
     def _handle_sensor(self):
         self.reading = self._generate_value()
         self._publish_wrapper(self.reading)
+        self.client.loop(1)
         sleep(1)
 
     def _publish_wrapper(self, message):
