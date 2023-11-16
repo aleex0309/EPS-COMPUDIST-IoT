@@ -1,6 +1,7 @@
 from operator import truediv
 from os import getenv
 import paho.mqtt.client as client
+from kafka import KafkaProducer
 
 DEVICE_TYPE = {"LIGHT", "PRESENCE_SENSOR", "TEMPERATURE_SENSOR", "HEAT_PUMP"}
 
@@ -11,6 +12,7 @@ def flushed_print(string):
 
 def on_message(client, userdata, message):
     flushed_print(f"{message.topic} {message.payload}")
+    kafka_producer.send(message.topic, message.payload)
 
 
 def on_connect(client, userdata, flags, rc):
@@ -28,6 +30,7 @@ if __name__ == "__main__":
     flushed_print(f"Connected to host: {host}")
 
     mqtt_client = client.Client()
+    kafka_producer = KafkaProducer(bootstrap_servers=['kafka:9092'])
 
     mqtt_client.on_connect = on_connect
     mqtt_client.on_disconnect = on_disconnect
