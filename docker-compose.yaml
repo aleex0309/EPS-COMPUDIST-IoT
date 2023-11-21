@@ -68,3 +68,33 @@ services:
 
     depends_on:
       - kafka
+
+  save:
+    build: microservices/save
+    environment:
+        - INFLUXDB_DB=logs
+        - INFLUXDB_ADMIN_USER=admin
+        - INFLUXDB_ADMIN_PASSWORD=admin
+        - INFLUXDB_USER=user
+        - INFLUXDB_USER_PASSWORD=user
+        - KAFKA_BROKER_HOSTNAME=kafka:9092
+
+    depends_on: 
+      - influx
+
+  influx:
+    image: influxdb:latest
+    ports:
+      - "8086:8086"
+    volumes:
+     - ./data_influxdb:/var/lib/influx:rw
+
+  chronograf:
+    image: chronograf:latest
+    ports:
+      - "8888:8888"
+    depends_on:
+      - influx
+    environment:
+      - HOSTS_0_NAME=logs_influx
+      - HOSTS_0_URL=http://influxdb:8086
