@@ -1,7 +1,6 @@
 from json import dumps
 from os import getenv
 from time import sleep
-from uu import decode
 import paho.mqtt.client as client
 from kafka import KafkaProducer
 
@@ -24,9 +23,9 @@ def on_message(client, userdata, message):
     flushed_print(f"{message.topic} {message.payload} ")
 
     data = {
-        "gateway": "todo",
+        "gateway": getenv("GATEWAY_NAME"),
         "device_name": message.topic,
-        "value": message.payload,
+        "value": int(message.payload),
     }
 
     producer.send("save", data)

@@ -17,6 +17,7 @@ services:
     environment:
       - MQTT_HOSTNAME=mosquitto
       - KAFKA_BROKER_HOSTNAME=kafka:9092
+      - GATEWAY_NAME=gateway1
     depends_on:
       - mosquitto
       - kafka
