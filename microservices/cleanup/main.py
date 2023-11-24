@@ -1,5 +1,4 @@
-from operator import truediv
-from os import getenv, read
+from os import getenv
 from json import loads, dumps
 from time import sleep
 
