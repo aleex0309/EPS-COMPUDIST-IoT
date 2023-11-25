@@ -6,6 +6,9 @@ from kafka import KafkaProducer
 
 DEVICE_TYPE = {"LIGHT", "PRESENCE_SENSOR", "TEMPERATURE_SENSOR", "HEAT_PUMP"}
 
+mtqq_hostname = str(getenv("MQTT_HOSTNAME"))
+kafka_hostname = str(getenv("KAFKA_BROKER_HOSTNAME"))
+
 producer: KafkaProducer
 
 
@@ -26,6 +29,7 @@ def on_message(client, userdata, message):
         "gateway": getenv("GATEWAY_NAME"),
         "device_name": message.topic,
         "value": int(message.payload),
+        "mqtt_hostname": mtqq_hostname,
     }
 
     producer.send("save", data)
@@ -43,8 +47,6 @@ def on_disconnect(client, userdata, rc):
 if __name__ == "__main__":
     flushed_print("Starting gateway")
 
-    mtqq_hostname = str(getenv("MQTT_HOSTNAME"))
-    kafka_hostname = str(getenv("KAFKA_BROKER_HOSTNAME"))
     flushed_print(f"Connected to host: {mtqq_hostname}")
 
     mqtt_client = client.Client()

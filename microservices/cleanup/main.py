@@ -76,4 +76,5 @@ if __name__ == "__main__":
         print(f"Recived value from <clean>: {msg.value}", flush=True)
         if filter_value(msg.value):
             producer.send("save", msg.value)
-            print(f"Sended to <save>: {msg.value}", flush=True)
+            producer.send("actuate", msg.value)
+            print(f"Sended to <save, actuate>: {msg.value}", flush=True)
