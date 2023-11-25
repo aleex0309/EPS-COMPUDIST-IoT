@@ -28,14 +28,8 @@ def on_disconnect(client, userdata, rc):
     flushed_print("Disconnected")
 
 
-def on_publish(client, userdata, mid):
-    flushed_print(f"SENDED")
-
-
 if __name__ == "__main__":
     flushed_print("Starting actuation")
-    mqtt_client = client.Client()
-
     # Connect consumer
     while True:
         try:
@@ -57,51 +51,46 @@ if __name__ == "__main__":
 
         sleep(1)
 
-    mqtt_client.on_connect = on_connect
-    mqtt_client.on_disconnect = on_disconnect
-    mqtt_client.on_publish = on_publish
-
-    mqtt_client.subscribe("TEMPERATURE_SENSOR")
-
-    mqtt_client.loop_forever()
-
     for msg in consumer:
-        print(f"Recived value from <actuate>: {msg.value}", flush=True)
+        flushed_print(f"Recived value from <actuate>: {msg.value}")
         hostname: str = msg.value.get("mqtt_hostname")
-        clien: client.Client | None = mqtt_clients.get("mqtt_hostname")
+        clien: client.Client = mqtt_clients.get(hostname)  # type: ignore
 
         # Check if client is new
         if not clien:
             clien = client.Client()
+            clien.connect(host=hostname)
             clien.on_connect = on_connect
             clien.on_disconnect = on_disconnect
-            clien.on_publish = on_publish
             clien.loop_start()
-            mqtt_clients.update({hostname: mqtt_client})
+            flushed_print(f"Created new mqtt client for ({hostname})")
+            mqtt_clients.update({hostname: clien})
 
         # Check if device is new
         topic = msg.value.get("device_name")
 
         # Actuate
-        value = topic = msg.value.get("device_name")
+        value = int(msg.value.get("value"))
 
         # PresenceSensor-> LightBulb: +50 -> 1 / -50 ->0
         # TemperatureSensor -> HeatPump: 18-20 -> 20/ 24-28 -> 24
-        match topic:
-            case "PRESENCE_SENSOR":
-                if value > 50:
-                    res = 1
-                else:
-                    res = 0
 
-                clien.publish("LIGHT", res)
+        if topic == "PRESENCE_SENSOR":
+            if value > 50:
+                res = 1
+            else:
+                res = 0
 
-            case "TEMPERATURE_SENSOR":
-                if 18 < value and value > 20:
-                    res = 20
-                elif 24 < value and value > 28:
-                    res = 24
-                else:
-                    continue
+            clien.publish("LIGHT", res)
+            flushed_print(f"Sended to LIGHT -> {res} because ({value})")
 
-                clien.publish("HEAT_PUMP", res)
+        if topic == "TEMPERATURE_SENSOR":
+            if 18 < value and value > 20:
+                res = 20
+            elif 24 < value and value > 28:
+                res = 24
+            else:
+                continue
+
+            clien.publish("HEAT_PUMP", res)
+            flushed_print(f"Sended to HEAT_PUMP -> {res} because ({value})")
