@@ -1,70 +1,87 @@
-import subprocess
-import time
-from ast import main
-from http import client
+import random
 import os
-from influxdb import InfluxDBClient
+import ssl
+import time
+from http import client
+import token
+from influxdb_client import InfluxDBClient, Point
+from influxdb_client.client.write_api import SYNCHRONOUS
+from kafka import KafkaConsumer
+from json import loads
 
-def wait_for_influxdb():
+bucket = "mybucket"
+org = "myorg"
+url = "http://127.0.0.1:8086"
+token = "exampletoken"
+
+print("URL = "+url)
+tag = "user1"
+
+client = InfluxDBClient(url=url, token=token, org=org,)
+write_api = client.write_api(write_options=SYNCHRONOUS)
+
+kafka_hostname = hostname = os.getenv("KAFKA_BROKER_HOSTNAME")
+
+def deserializer(value: bytes) -> dict:
+    return loads(value.decode("utf-8"))
+
+def kafka_clean_connect():
     while True:
         try:
-            subprocess.check_output(['influx', '-execute', 'show databases'])
-            print("InfluxDB está disponible.")
-            break
-        except subprocess.CalledProcessError:
-            print("InfluxDB no está disponible todavía, esperando...")
-            time.sleep(5)
+            print(f"Trying to connect to broker {hostname}...", flush=True)
+            clean_consumer = KafkaConsumer(
+                "", #Topic for clean data
+                bootstrap_servers=[str(hostname)],
+                value_deserializer=deserializer,
+            )
 
-def create_user():
-    subprocess.check_output(['influx', '-execute', 'CREATE USER "nuevo_usuario" WITH PASSWORD \'nueva_contraseña\' WITH ALL PRIVILEGES'])
-    print("Usuario creado exitosamente.")
+            if clean_consumer.bootstrap_connected():
+                break
 
-def create_db(client):
-  # Crear la base de datos 'logs' si no existe
-  client.create_database(database)
+        except Exception as e:
+            print(e, flush=True)
 
-  # Cambiar a la base de datos 'logs'
-  client.switch_database(database)
+        time.sleep(1)
 
-  # Definir la configuración de la tabla 'clean'
-  clean_table_config = {
-      "measurement": "clean",
-      "fields": {
-          "value": "float"
-      },
-      "time": True,
-  }
+    if clean_consumer.bootstrap_connected():
+        print("Clean Connection Established!", flush=True)
 
-  # Crear la tabla 'clean' si no existe
-  client.create_retention_policy("clean_policy", "INF", 1, database, default=True)
-  client.create_continuous_query("clean_cq", f"SELECT * INTO clean FROM raw", database)
-  client.write_points([], 'clean', clean_table_config)
+    for msg in clean_consumer:
+        print(f"Clean Recived Value {msg.value}", flush=True)
 
-  # Definir la configuración de la tabla 'raw'
-  raw_table_config = {
-      "measurement": "raw",
-      "fields": {
-          "value": "float"
-      },
-      "time": True,
-  }
+def kafka_raw_connect():
+    while True:
+        try:
+            print(f"Trying to connect to broker {hostname}...", flush=True)
+            raw_consumer = KafkaConsumer(
+                "", #Topic for raw data
+                bootstrap_servers=[str(hostname)],
+                value_deserializer=deserializer,
+            )
 
-  # Crear la tabla 'raw' si no existe
-  client.write_points([], 'raw', raw_table_config)
+            if raw_consumer.bootstrap_connected():
+                break
 
-  print("Base de datos, tabla 'clean' y tabla 'raw' creadas con éxito.")
+        except Exception as e:
+            print(e, flush=True)
 
-if __name__ == main:
-  wait_for_influxdb()
-  create_user()
-      # Obtener valores de las variables de entorno
-  host = os.getenv("INFLUXDB_HOST", "influx")
-  port = int(os.getenv("INFLUXDB_PORT", 8086))
-  user = os.getenv("INFLUXDB_USER", "admin")
-  password = os.getenv("INFLUXDB_PASSWORD", "admin")
-  database = os.getenv("INFLUXDB_DB", "logs")
+        time.sleep(1)
 
-  # Crear conexión al cliente de InfluxDB
-  client = InfluxDBClient(host, port, user, password, database)
-  create_db(client)
-    
+    if raw_consumer.bootstrap_connected():
+        print("Clean Connection Established!", flush=True)
+
+    for msg in raw_consumer:
+        print(f"Clean Recived Value {msg.value}", flush=True)
+
+def save_values(value, topic):
+    while True:
+        time.sleep(10)
+        value = random.uniform(20, 25)
+        p = Point("measurement").tag("user", tag).field("temperature", value)
+        write_api.write(bucket=bucket, record=p)
+        print("%s %s" % ("temperature", value))
+        time.sleep(1)
+
+if __name__ == "__main__":
+    kafka_clean_connect()
+    kafka_raw_connect()

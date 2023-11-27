@@ -71,30 +71,18 @@ services:
 
   save:
     build: microservices/save
-    environment:
-        - INFLUXDB_DB=logs
-        - INFLUXDB_ADMIN_USER=admin
-        - INFLUXDB_ADMIN_PASSWORD=admin
-        - INFLUXDB_USER=user
-        - INFLUXDB_USER_PASSWORD=user
-        - KAFKA_BROKER_HOSTNAME=kafka:9092
-
     depends_on: 
-      - influx
+      - influxdb
 
-  influx:
-    image: influxdb:latest
+
+  influxdb:
+    image: influxdb:2.4.0
     ports:
       - "8086:8086"
-    volumes:
-     - ./data_influxdb:/var/lib/influx:rw
-
-  chronograf:
-    image: chronograf:latest
-    ports:
-      - "8888:8888"
-    depends_on:
-      - influx
     environment:
-      - HOSTS_0_NAME=logs_influx
-      - HOSTS_0_URL=http://influxdb:8086
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=admin
+      - DOCKER_INFLUXDB_INIT_PASSWORD=adminpassword
+      - DOCKER_INFLUXDB_INIT_ORG=myorg
+      - DOCKER_INFLUXDB_INIT_BUCKET=mybucket
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=exampletoken
