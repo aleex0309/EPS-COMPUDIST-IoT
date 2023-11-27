@@ -15,7 +15,7 @@ url = "http://influxdb:8086"
 token = "exampletoken"
 
 print("URL = "+url)
-tag = "user1"
+
 
 client = InfluxDBClient(url=url, token=token, org=org,)
 write_api = client.write_api(write_options=SYNCHRONOUS)
@@ -48,16 +48,12 @@ def kafka_connect():
     
     for msg in consumer:
         print(f"Received :{msg.value}")
+        save_values(msg.value)
 
 
-def save_values(value, topic):
-    while True:
-        time.sleep(10)
-        value = random.uniform(20, 25)
-        p = Point("measurement").tag("user", tag).field("temperature", value)
+def save_values(value):
+        p = Point("raw" if value.get("raw") else "clean").tag("gateway",value.get('gateway')).tag("device",value.get('device_name')).field("value", value.get("value"))
         write_api.write(bucket=bucket, record=p)
-        print("%s %s" % ("temperature", value))
-        time.sleep(1)
 
 if __name__ == "__main__":
     kafka_connect()
