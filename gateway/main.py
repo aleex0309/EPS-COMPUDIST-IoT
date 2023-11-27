@@ -23,7 +23,7 @@ def flushed_print(string):
 def on_message(client, userdata, message):
     message.payload = message.payload.decode("utf-8")
 
-    flushed_print(f"{message.topic} {message.payload} ")
+    flushed_print(f"RECIEVED FROM {message.topic} -> {message.payload} ")
 
     data = {
         "gateway": getenv("GATEWAY_NAME"),
@@ -71,6 +71,5 @@ if __name__ == "__main__":
     mqtt_client.on_message = on_message
 
     mqtt_client.connect(host=mtqq_hostname)
-    mqtt_client.subscribe("TEMPERATURE_SENSOR")
-
+    mqtt_client.subscribe("#")
     mqtt_client.loop_forever()

@@ -3,7 +3,7 @@
 #Docker Python Image
 FROM python:3.9.18-slim-bullseye
 
-ARG PYTHONUNBUFFERED=1
+ENV PYTHONUNBUFFERED=TRUE
 
 
 # Add python files
