@@ -3,11 +3,10 @@
 #Docker Python Image
 FROM python:3.9.18-slim-bullseye
 
-ENV PYTHONUNBUFFERED=TRUE
-
+ARG PYTHONUNBUFFERED=1
 
 # Add python files
-ADD ./*.py .
+ADD ./main.py .
 ADD ./requirements.txt .
 
 RUN pip install -r ./requirements.txt

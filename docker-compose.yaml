@@ -1,25 +1,202 @@
 version: "3.9"
 services:
-  mosquitto:
+  # ---------------------------
+  # Albert
+  # ---------------------------
+
+  mosquitto-albert:
     image: eclipse-mosquitto:1.6.12
 
-  device-1:
-    build: device
-    environment:
-      - BROKER_HOSTNAME=mosquitto
-      - DEVICE_TYPE=TEMPERATURE_SENSOR
-      - PYTHONUNBUFFERED=1
-    depends_on:
-      - gateway
-
-  gateway:
+  gateway-albert:
     build: gateway
     environment:
-      - MQTT_HOSTNAME=mosquitto
+      - MQTT_HOSTNAME=mosquitto-albert
       - KAFKA_BROKER_HOSTNAME=kafka:9092
+      - GATEWAY_NAME=gateway-albert
     depends_on:
-      - mosquitto
+      - mosquitto-albert
       - kafka
+
+  device-albert-temp:
+    build: device
+    environment:
+      - BROKER_HOSTNAME=mosquitto-albert
+      - DEVICE_TYPE=TEMPERATURE_SENSOR
+    depends_on:
+      - gateway-albert
+
+  device-albert-pump:
+    build: device
+    environment:
+      - BROKER_HOSTNAME=mosquitto-albert
+      - DEVICE_TYPE=HEAT_PUMP
+    depends_on:
+      - gateway-albert
+
+  device-albert-sensor:
+    build: device
+    environment:
+      - BROKER_HOSTNAME=mosquitto-albert
+      - DEVICE_TYPE=PRESENCE_SENSOR
+    depends_on:
+      - gateway-albert
+
+  device-albert-light:
+    build: device
+    environment:
+      - BROKER_HOSTNAME=mosquitto-albert
+      - DEVICE_TYPE=LIGHT
+    depends_on:
+      - gateway-albert
+  # ---------------------------
+  # Tommy
+  # ---------------------------
+
+  mosquitto-tommy:
+    image: eclipse-mosquitto:1.6.12
+
+  gateway-tommy:
+    build: gateway
+    environment:
+      - MQTT_HOSTNAME=mosquitto-tommy
+      - KAFKA_BROKER_HOSTNAME=kafka:9092
+      - GATEWAY_NAME=gateway-tommy
+    depends_on:
+      - mosquitto-tommy
+      - kafka
+
+  device-tommy-temp:
+    build: device
+    environment:
+      - BROKER_HOSTNAME=mosquitto-tommy
+      - DEVICE_TYPE=TEMPERATURE_SENSOR
+    depends_on:
+      - gateway-tommy
+
+  device-tommy-pump:
+    build: device
+    environment:
+      - BROKER_HOSTNAME=mosquitto-tommy
+      - DEVICE_TYPE=HEAT_PUMP
+    depends_on:
+      - gateway-tommy
+
+  device-tommy-sensor:
+    build: device
+    environment:
+      - BROKER_HOSTNAME=mosquitto-tommy
+      - DEVICE_TYPE=PRESENCE_SENSOR
+    depends_on:
+      - gateway-tommy
+
+  device-tommy-light:
+    build: device
+    environment:
+      - BROKER_HOSTNAME=mosquitto-tommy
+      - DEVICE_TYPE=LIGHT
+    depends_on:
+      - gateway-tommy
+
+  # ---------------------------
+  # Dakota
+  # ---------------------------
+
+  mosquitto-dakota:
+    image: eclipse-mosquitto:1.6.12
+
+  gateway-dakota:
+    build: gateway
+    environment:
+      - MQTT_HOSTNAME=mosquitto-dakota
+      - KAFKA_BROKER_HOSTNAME=kafka:9092
+      - GATEWAY_NAME=gateway-dakota
+    depends_on:
+      - mosquitto-dakota
+      - kafka
+
+  device-dakota-temp:
+    build: device
+    environment:
+      - BROKER_HOSTNAME=mosquitto-dakota
+      - DEVICE_TYPE=TEMPERATURE_SENSOR
+    depends_on:
+      - gateway-dakota
+
+  device-dakota-pump:
+    build: device
+    environment:
+      - BROKER_HOSTNAME=mosquitto-dakota
+      - DEVICE_TYPE=HEAT_PUMP
+    depends_on:
+      - gateway-dakota
+
+  device-dakota-sensor:
+    build: device
+    environment:
+      - BROKER_HOSTNAME=mosquitto-dakota
+      - DEVICE_TYPE=PRESENCE_SENSOR
+    depends_on:
+      - gateway-dakota
+
+  device-dakota-light:
+    build: device
+    environment:
+      - BROKER_HOSTNAME=mosquitto-dakota
+      - DEVICE_TYPE=LIGHT
+    depends_on:
+      - gateway-dakota
+  # ---------------------------
+  # Tifany
+  # ---------------------------
+
+  mosquitto-tifany:
+    image: eclipse-mosquitto:1.6.12
+
+  gateway-tifany:
+    build: gateway
+    environment:
+      - MQTT_HOSTNAME=mosquitto-tifany
+      - KAFKA_BROKER_HOSTNAME=kafka:9092
+      - GATEWAY_NAME=gateway-tifany
+    depends_on:
+      - mosquitto-tifany
+      - kafka
+
+  device-tifany-temp:
+    build: device
+    environment:
+      - BROKER_HOSTNAME=mosquitto-tifany
+      - DEVICE_TYPE=TEMPERATURE_SENSOR
+    depends_on:
+      - gateway-tifany
+
+  device-tifany-pump:
+    build: device
+    environment:
+      - BROKER_HOSTNAME=mosquitto-tifany
+      - DEVICE_TYPE=HEAT_PUMP
+    depends_on:
+      - gateway-tifany
+
+  device-tifany-sensor:
+    build: device
+    environment:
+      - BROKER_HOSTNAME=mosquitto-tifany
+      - DEVICE_TYPE=PRESENCE_SENSOR
+    depends_on:
+      - gateway-tifany
+
+  device-tifany-light:
+    build: device
+    environment:
+      - BROKER_HOSTNAME=mosquitto-tifany
+      - DEVICE_TYPE=LIGHT
+    depends_on:
+      - gateway-tifany
+
+  # ---------------------------
+  # Kafka
+  # ---------------------------
 
   zookeeper:
     image: docker.io/bitnami/zookeeper:3.8
@@ -41,6 +218,7 @@ services:
     depends_on:
       - zookeeper
 
+  # Opens a container that creates topics and then ends
   init-kafka:
     image: docker.io/bitnami/kafka:3.3
     depends_on:
@@ -56,11 +234,15 @@ services:
       echo -e 'Creating kafka topics'
       kafka-topics.sh --create --topic clean -partitions 3 --bootstrap-server kafka:9092
       kafka-topics.sh --create --topic save -partitions 3 --bootstrap-server kafka:9092
+      kafka-topics.sh --create --topic actuate -partitions 3 --bootstrap-server kafka:9092
 
       echo -e 'Successfully created the following topics:'
       kafka-topics.sh --list --bootstrap-server kafka:9092
       "
 
+  # ---------------------------
+  # MICROSERVICES
+  # ---------------------------
   cleanup:
     build: microservices/cleanup
     environment:
@@ -86,3 +268,11 @@ services:
       - DOCKER_INFLUXDB_INIT_ORG=myorg
       - DOCKER_INFLUXDB_INIT_BUCKET=mybucket
       - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=exampletoken
+
+  actuation:
+    build: microservices/actuation
+    environment:
+      - KAFKA_BROKER_HOSTNAME=kafka:9092
+
+    depends_on:
+      - kafka

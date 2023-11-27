@@ -1,11 +1,13 @@
 from json import dumps
 from os import getenv
 from time import sleep
-from uu import decode
 import paho.mqtt.client as client
 from kafka import KafkaProducer
 
 DEVICE_TYPE = {"LIGHT", "PRESENCE_SENSOR", "TEMPERATURE_SENSOR", "HEAT_PUMP"}
+
+mtqq_hostname = str(getenv("MQTT_HOSTNAME"))
+kafka_hostname = str(getenv("KAFKA_BROKER_HOSTNAME"))
 
 producer: KafkaProducer
 
@@ -21,12 +23,13 @@ def flushed_print(string):
 def on_message(client, userdata, message):
     message.payload = message.payload.decode("utf-8")
 
-    flushed_print(f"{message.topic} {message.payload} ")
+    flushed_print(f"RECIEVED FROM {message.topic} -> {message.payload} ")
 
     data = {
-        "gateway": "todo",
+        "gateway": getenv("GATEWAY_NAME"),
         "device_name": message.topic,
-        "value": message.payload,
+        "value": int(message.payload),
+        "mqtt_hostname": mtqq_hostname,
     }
 
     producer.send("save", data)
@@ -44,8 +47,6 @@ def on_disconnect(client, userdata, rc):
 if __name__ == "__main__":
     flushed_print("Starting gateway")
 
-    mtqq_hostname = str(getenv("MQTT_HOSTNAME"))
-    kafka_hostname = str(getenv("KAFKA_BROKER_HOSTNAME"))
     flushed_print(f"Connected to host: {mtqq_hostname}")
 
     mqtt_client = client.Client()
@@ -70,6 +71,5 @@ if __name__ == "__main__":
     mqtt_client.on_message = on_message
 
     mqtt_client.connect(host=mtqq_hostname)
-    mqtt_client.subscribe("TEMPERATURE_SENSOR")
-
+    mqtt_client.subscribe("#")
     mqtt_client.loop_forever()
