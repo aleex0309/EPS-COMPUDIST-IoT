@@ -75,6 +75,7 @@ if __name__ == "__main__":
     for msg in consumer:
         print(f"Recived value from <clean>: {msg.value}", flush=True)
         if filter_value(msg.value):
+            msg.value.update({"raw":False})
             producer.send("save", msg.value)
             producer.send("actuate", msg.value)
             print(f"Sended to <save, actuate>: {msg.value}", flush=True)

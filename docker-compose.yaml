@@ -251,10 +251,20 @@ services:
     depends_on:
       - kafka
 
+  actuation:
+    build: microservices/actuation
+    environment:
+      - KAFKA_BROKER_HOSTNAME=kafka:9092
+
+    depends_on:
+      - kafka
+
   save:
     build: microservices/save
     depends_on: 
       - influxdb
+    environment:
+      - KAFKA_BROKER_HOSTNAME=kafka:9092
 
 
   influxdb:
@@ -268,11 +278,3 @@ services:
       - DOCKER_INFLUXDB_INIT_ORG=myorg
       - DOCKER_INFLUXDB_INIT_BUCKET=mybucket
       - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=exampletoken
-
-  actuation:
-    build: microservices/actuation
-    environment:
-      - KAFKA_BROKER_HOSTNAME=kafka:9092
-
-    depends_on:
-      - kafka

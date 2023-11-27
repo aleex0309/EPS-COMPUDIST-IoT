@@ -11,7 +11,7 @@ from json import loads
 
 bucket = "mybucket"
 org = "myorg"
-url = "http://127.0.0.1:8086"
+url = "http://influxdb:8086"
 token = "exampletoken"
 
 print("URL = "+url)
@@ -25,17 +25,17 @@ kafka_hostname = hostname = os.getenv("KAFKA_BROKER_HOSTNAME")
 def deserializer(value: bytes) -> dict:
     return loads(value.decode("utf-8"))
 
-def kafka_clean_connect():
+def kafka_connect():
     while True:
         try:
             print(f"Trying to connect to broker {hostname}...", flush=True)
-            clean_consumer = KafkaConsumer(
-                "", #Topic for clean data
+            consumer = KafkaConsumer(
+                "save", #Topic for clean data
                 bootstrap_servers=[str(hostname)],
                 value_deserializer=deserializer,
             )
 
-            if clean_consumer.bootstrap_connected():
+            if consumer.bootstrap_connected():
                 break
 
         except Exception as e:
@@ -43,35 +43,12 @@ def kafka_clean_connect():
 
         time.sleep(1)
 
-    if clean_consumer.bootstrap_connected():
+    if consumer.bootstrap_connected():
         print("Clean Connection Established!", flush=True)
+    
+    for msg in consumer:
+        print(f"Received :{msg.value}")
 
-    for msg in clean_consumer:
-        print(f"Clean Recived Value {msg.value}", flush=True)
-
-def kafka_raw_connect():
-    while True:
-        try:
-            print(f"Trying to connect to broker {hostname}...", flush=True)
-            raw_consumer = KafkaConsumer(
-                "", #Topic for raw data
-                bootstrap_servers=[str(hostname)],
-                value_deserializer=deserializer,
-            )
-
-            if raw_consumer.bootstrap_connected():
-                break
-
-        except Exception as e:
-            print(e, flush=True)
-
-        time.sleep(1)
-
-    if raw_consumer.bootstrap_connected():
-        print("Clean Connection Established!", flush=True)
-
-    for msg in raw_consumer:
-        print(f"Clean Recived Value {msg.value}", flush=True)
 
 def save_values(value, topic):
     while True:
@@ -83,5 +60,4 @@ def save_values(value, topic):
         time.sleep(1)
 
 if __name__ == "__main__":
-    kafka_clean_connect()
-    kafka_raw_connect()
+    kafka_connect()
