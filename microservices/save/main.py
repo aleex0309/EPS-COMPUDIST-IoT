@@ -37,6 +37,7 @@ def kafka_connect():
                 "clean",  # Topic for clean data
                 bootstrap_servers=[str(hostname)],
                 value_deserializer=deserializer,
+                group_id="save",
             )
 
             if consumer.bootstrap_connected():
