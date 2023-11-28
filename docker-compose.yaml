@@ -273,6 +273,8 @@ services:
     build: microservices/save
     depends_on:
       - influxdb
+      - kafka
+      - init-kafka
     environment:
       - KAFKA_BROKER_HOSTNAME=kafka:9092
 
