@@ -2,7 +2,7 @@ import os
 import time
 import token
 from influxdb_client import InfluxDBClient, Point
-from influxdb_client.client.write_api import SYNCHRONOUS
+from influxdb_client.client.write_api import ASYNCHRONOUS
 from kafka import KafkaConsumer
 from json import loads
 
@@ -19,7 +19,7 @@ cli = InfluxDBClient(
     token=token,
     org=org,
 )
-write_api = cli.write_api(write_options=SYNCHRONOUS)
+write_api = cli.write_api(write_options=ASYNCHRONOUS)
 
 kafka_hostname = hostname = os.getenv("KAFKA_BROKER_HOSTNAME")
 
