@@ -233,9 +233,8 @@ services:
       kafka-topics.sh --bootstrap-server kafka:9092 --list
 
       echo -e 'Creating kafka topics'
-      kafka-topics.sh --create --topic clean -partitions 2 --bootstrap-server kafka:9092
-      kafka-topics.sh --create --topic save -partitions 1 --bootstrap-server kafka:9092
-      kafka-topics.sh --create --topic actuate -partitions 1 --bootstrap-server kafka:9092
+      kafka-topics.sh --create --topic clean -partitions 1 --bootstrap-server kafka:9092
+      kafka-topics.sh --create --topic save -partitions 2 --bootstrap-server kafka:9092
 
       echo -e 'Successfully created the following topics:'
       kafka-topics.sh --list --bootstrap-server kafka:9092

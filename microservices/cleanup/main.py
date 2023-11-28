@@ -42,7 +42,7 @@ if __name__ == "__main__":
         try:
             print(f"(Consumer) Trying to connect to broker {hostname}...", flush=True)
             consumer = KafkaConsumer(
-                "clean",
+                "save",
                 bootstrap_servers=[str(hostname)],
                 value_deserializer=deserializer,
                 group_id=group_id,
@@ -79,9 +79,8 @@ if __name__ == "__main__":
         print("Connection Established(Producer)!", flush=True)
 
     for msg in consumer:
-        print(f"Recived value from <clean>: {msg.value}", flush=True)
+        print(f"Recived value from <save>: {msg.value}", flush=True)
         if filter_value(msg.value):
             msg.value.update({"raw": False})
-            producer.send("save", msg.value)
-            producer.send("actuate", msg.value)
-            print(f"Sended to <save, actuate>: {msg.value}", flush=True)
+            producer.send("clean", msg.value)
+            print(f"Sended to <clean>: {msg.value}", flush=True)

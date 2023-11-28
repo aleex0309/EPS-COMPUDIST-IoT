@@ -38,7 +38,7 @@ if __name__ == "__main__":
                 flush=True,
             )
             consumer = KafkaConsumer(
-                "actuate",
+                "clean",
                 bootstrap_servers=[str(kafka_hostname)],
                 value_deserializer=deserializer,
             )
