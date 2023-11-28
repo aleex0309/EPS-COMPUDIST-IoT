@@ -1,6 +1,5 @@
 import os
 import time
-import token
 from influxdb_client import InfluxDBClient, Point
 from influxdb_client.client.write_api import ASYNCHRONOUS
 from kafka import KafkaConsumer

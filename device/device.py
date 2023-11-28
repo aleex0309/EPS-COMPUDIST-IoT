@@ -31,9 +31,9 @@ class Device:
         if self.isActuator:
             self.client.subscribe(self.topic)
             self.client.loop_forever()
-
-        while True:
-            self._handle_sensor()
+        else:
+            while True:
+                self._handle_sensor()
 
     def connect(self, hostname, topic):
         print("Topic: " + topic)
