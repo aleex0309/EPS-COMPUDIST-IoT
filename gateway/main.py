@@ -30,11 +30,10 @@ def on_message(client, userdata, message):
         "device_name": message.topic,
         "value": int(message.payload),
         "mqtt_hostname": mtqq_hostname,
-        "raw": True
+        "raw": True,
     }
 
     producer.send("save", data)
-    producer.send("clean", data)
 
 
 def on_connect(client, userdata, flags, rc):

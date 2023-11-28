@@ -214,6 +214,7 @@ services:
       - ALLOW_PLAINTEXT_LISTENER=yes
       - ALLOW_ANONYMOUS_LOGIN=yes
       - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=false
 
     depends_on:
       - zookeeper
@@ -232,9 +233,8 @@ services:
       kafka-topics.sh --bootstrap-server kafka:9092 --list
 
       echo -e 'Creating kafka topics'
-      kafka-topics.sh --create --topic clean -partitions 3 --bootstrap-server kafka:9092
-      kafka-topics.sh --create --topic save -partitions 3 --bootstrap-server kafka:9092
-      kafka-topics.sh --create --topic actuate -partitions 3 --bootstrap-server kafka:9092
+      kafka-topics.sh --create --topic clean -partitions 1 --bootstrap-server kafka:9092
+      kafka-topics.sh --create --topic save -partitions 2 --bootstrap-server kafka:9092
 
       echo -e 'Successfully created the following topics:'
       kafka-topics.sh --list --bootstrap-server kafka:9092
@@ -243,10 +243,20 @@ services:
   # ---------------------------
   # MICROSERVICES
   # ---------------------------
-  cleanup:
+  cleanup-1:
     build: microservices/cleanup
     environment:
       - KAFKA_BROKER_HOSTNAME=kafka:9092
+      - GROUP_ID=clean_group
+
+    depends_on:
+      - kafka
+
+  cleanup-2:
+    build: microservices/cleanup
+    environment:
+      - KAFKA_BROKER_HOSTNAME=kafka:9092
+      - GROUP_ID=clean_group
 
     depends_on:
       - kafka
@@ -261,11 +271,10 @@ services:
 
   save:
     build: microservices/save
-    depends_on: 
+    depends_on:
       - influxdb
     environment:
       - KAFKA_BROKER_HOSTNAME=kafka:9092
-
 
   influxdb:
     image: influxdb:2.4.0
